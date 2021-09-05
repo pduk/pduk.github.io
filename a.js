@@ -52,42 +52,18 @@ function is_any_compare_array(firstArr, secondArr) {
 	return firstArr.some(x => secondArr.indexOf(x) !== -1);
 }
 
-
-function levenshteinDistance(str1, str2) {
-	const track = Array(str2.length + 1).fill(null).map(() =>
-		Array(str1.length + 1).fill(null));
-	for (let i = 0; i <= str1.length; i += 1) {
-		track[0][i] = i;
-	}
-	for (let j = 0; j <= str2.length; j += 1) {
-		track[j][0] = j;
-	}
-	for (let j = 1; j <= str2.length; j += 1) {
-		for (let i = 1; i <= str1.length; i += 1) {
-			const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-			track[j][i] = Math.min(
-				track[j][i - 1] + 1,
-				track[j - 1][i] + 1,
-				track[j - 1][i - 1] + indicator,
-			);
-		}
-	}
-	return track[str2.length][str1.length];
-}
-
 function is_answer_correct(answer, correctAnswer) {
 	if (answer.includes(correctAnswer) || correctAnswer.includes(answer)) {
 		return true;
 	}
 
-	var distance = levenshteinDistance(answer, correctAnswer);
-	if (distance <= 2) {
-		return true;
+	if (answer.includes("`")) {
+		return is_answer_correct(answer.replace("`","'"), correctAnswer);
 	}
-	else if (distance <= 5) {
-		return true;
-	}
-	else if (distance <= 10) {
+
+	let answer1 = answer.trimRight('.');
+	let correctAnswer1 = correctAnswer.trimRight('.');
+	if (answer1.includes(correctAnswer1) || correctAnswer1.includes(answer1)) {
 		return true;
 	}
 
@@ -104,8 +80,11 @@ function check_if_correct() {
 	question = question.trimRight('\n');
 	var filteredAnswers = answers.filter(x => x.question === question);
 
-	if (filteredAnswers === undefined || filteredAnswers === null
-		|| filteredAnswers.length === 0 || element_is_empty(filteredAnswers)) {
+	if (filteredAnswers.length === 0 && question.includes("`")) {
+		question = question.replace("`", "'");
+		filteredAnswers = answers.filter(x => x.question === question);
+	}
+	if (filteredAnswers.length === 0) {
 		console.error(`cannot find answer for question: ${question}`);
 		return;
 	}
