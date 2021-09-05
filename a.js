@@ -81,13 +81,7 @@ function is_answer_correct(answer, correctAnswer) {
 	}
 
 	var distance = levenshteinDistance(answer, correctAnswer);
-	if (distance <= 2) {
-		return true;
-	}
-	else if (distance <= 5) {
-		return true;
-	}
-	else if (distance <= 10) {
+	if (distance < 5) {
 		return true;
 	}
 
