@@ -84,6 +84,12 @@ function is_answer_correct(answer, correctAnswer) {
 	if (distance <= 2) {
 		return true;
 	}
+	else if (distance <= 5) {
+		return true;
+	}
+	else if (distance <= 10) {
+		return true;
+	}
 
 	return false;
 }
@@ -100,7 +106,7 @@ function check_if_correct() {
 
 	if (filteredAnswers === undefined || filteredAnswers === null
 		|| filteredAnswers.length === 0 || element_is_empty(filteredAnswers)) {
-		console.error("Cannot find answer");
+		console.error(`cannot find answer for question: ${question}`);
 		return;
 	}
 
