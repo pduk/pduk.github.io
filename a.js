@@ -27,7 +27,7 @@ function start_listening() {
 }
 
 function compare_array(firstArr, secondArr) {
-	if (!Array.isArray(firstArr) || !Array.isArray(secondArr) 
+	if (!Array.isArray(firstArr) || !Array.isArray(secondArr)
 		|| firstArr.length !== secondArr.length) {
 		return false;
 	}
@@ -44,18 +44,68 @@ function compare_array(firstArr, secondArr) {
 	return true;
 }
 
-function is_answer_correct(answer, correctAnswer)
-{
-	return answer.includes(correctAnswer)
+function is_any_compare_array(firstArr, secondArr) {
+	if (!Array.isArray(firstArr) || !Array.isArray(secondArr)) {
+		return false;
+	}
+
+	return firstArr.some(x => secondArr.indexOf(x) !== -1);
+}
+
+
+function levenshteinDistance(str1, str2) {
+	const track = Array(str2.length + 1).fill(null).map(() =>
+		Array(str1.length + 1).fill(null));
+	for (let i = 0; i <= str1.length; i += 1) {
+		track[0][i] = i;
+	}
+	for (let j = 0; j <= str2.length; j += 1) {
+		track[j][0] = j;
+	}
+	for (let j = 1; j <= str2.length; j += 1) {
+		for (let i = 1; i <= str1.length; i += 1) {
+			const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+			track[j][i] = Math.min(
+				track[j][i - 1] + 1,
+				track[j - 1][i] + 1,
+				track[j - 1][i - 1] + indicator,
+			);
+		}
+	}
+	return track[str2.length][str1.length];
+}
+
+function is_answer_correct(answer, correctAnswer) {
+	if (answer.includes(correctAnswer) || correctAnswer.includes(answer)) {
+		return true;
+	}
+
+	var distance = levenshteinDistance(answer, correctAnswer);
+	if (distance <= 2) {
+		return true;
+	}
+	else if (distance <= 5) {
+		return true;
+	}
+	else if (distance <= 10) {
+		return true;
+	}
+
+	return false;
+}
+
+function element_is_empty(element) {
+	return Object.keys(element).length === 0 && element.constructor === Object;
 }
 
 function check_if_correct() {
-	console.log("Checking");
+	console.log("checking");
 	var question = document.getElementById("question-text").innerText;
 	question = question.trimRight('\n');
 	var filteredAnswers = answers.filter(x => x.question === question);
 
-	if (filteredAnswers === undefined || filteredAnswers === null || filteredAnswers.length === 0) {
+	if (filteredAnswers === undefined || filteredAnswers === null
+		|| filteredAnswers.length === 0 || element_is_empty(filteredAnswers)) {
 		console.error("Cannot find answer");
 		return;
 	}
@@ -74,6 +124,15 @@ function check_if_correct() {
 			if (compare_array(uiAnswers, filteredAnswers[i].answers)) {
 				answer = filteredAnswers[i];
 				break;
+			}
+		}
+
+		if (element_is_empty(answer)) {
+			for (let i = 0; i < filteredAnswers.length; i++) {
+				if (is_any_compare_array(uiAnswers, filteredAnswers[i].answers)) {
+					answer = filteredAnswers[i];
+					break;
+				}
 			}
 		}
 	}
