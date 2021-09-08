@@ -110,10 +110,11 @@ function findAnswerLevenshteinDistance(question) {
 	var minDistance = 100;
 	var answer = {};
 	for (let i = 0; i < answers.length; ++i) {
-		var distance = levenshteinDistance(question, answers[i].question);
+		let answr = answers[i];
+		let distance = levenshteinDistance(question, answr.question);
 		if (distance < minDistance) {
 			minDistance = distance;
-			answer = answers[i];
+			answer = answr;
 		}
 	}
 	console.log(`question levenshtein distance=${minDistance}`);
@@ -173,12 +174,13 @@ function findCorrectAnswer() {
 	console.log(answer);
 	var correctAnswer = answer.answers[answer.rightAnswerIndex];
 	var uiAnswers = document.querySelectorAll('.name-radio');
-	uiAnswers.forEach(item => {
+	for (let i = 0; i < uiAnswers.length; ++i) {
+		let item = uiAnswers[i];
 		if (isAnswerCorrect(item.innerText, correctAnswer)) {
 			markItemAsCorrect(item);
 			return;
 		}
-	});
+	}
 
 	//Find answer using Levinshtein distance
 	var minDistance = 50;
@@ -192,8 +194,7 @@ function findCorrectAnswer() {
 	});
 
 	console.log(`answer levishtein distance=${minDistance}`);
-	if (!isElementEmpty(minDistanceItem))
-	{
+	if (!isElementEmpty(minDistanceItem)) {
 		markItemAsCorrect(minDistanceItem);
 	}
 }
