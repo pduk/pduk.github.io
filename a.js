@@ -19,7 +19,7 @@ function start() {
 }
 
 function onQuestionChanged() {
-	var questionText = document.getElementById("question-text");
+	let questionText = document.getElementById("question-text");
 	observer = new MutationObserver(function (mutationsList, observer) {
 		findCorrectAnswer();
 	});
@@ -107,7 +107,7 @@ function levenshteinDistance(first, second) {
 };
 
 function findAnswerLevenshteinDistance(question) {
-	var minDistance = 100;
+	var minDistance = 200;
 	var answer = {};
 	for (let i = 0; i < answers.length; ++i) {
 		let answr = answers[i];
@@ -123,7 +123,7 @@ function findAnswerLevenshteinDistance(question) {
 }
 
 function findAnswer(question) {
-	var filteredAnswers = answers.filter(x => x.question === question);
+	let filteredAnswers = answers.filter(x => x.question === question);
 
 	if (filteredAnswers.length === 0 && question.includes("`")) {
 		question = question.replace("`", "'");
@@ -138,7 +138,7 @@ function findAnswer(question) {
 		return filteredAnswers[0];
 	}
 	else {
-		var uiAnswers = [];
+		let uiAnswers = [];
 		document.querySelectorAll('.name-radio').forEach(x => {
 			uiAnswers.push(x.innerText.trimRight('\n'));
 		});
@@ -163,8 +163,8 @@ function findAnswer(question) {
 
 function findCorrectAnswer() {
 	console.log("checking...");
-	var question = document.getElementById("question-text").innerText;
-	var answer = findAnswer(question.trimRight('\n'));
+	let question = document.getElementById("question-text").innerText;
+	let answer = findAnswer(question.trimRight('\n'));
 
 	if (answer === null || isElementEmpty(answer)) {
 		console.log(`cannot find answer for question: ${question}`);
@@ -172,8 +172,8 @@ function findCorrectAnswer() {
 	}
 
 	console.log(answer);
-	var correctAnswer = answer.answers[answer.rightAnswerIndex];
-	var uiAnswers = document.querySelectorAll('.name-radio');
+	let correctAnswer = answer.answers[answer.rightAnswerIndex];
+	let uiAnswers = document.querySelectorAll('.name-radio');
 	for (let i = 0; i < uiAnswers.length; ++i) {
 		let item = uiAnswers[i];
 		if (isAnswerCorrect(item.innerText, correctAnswer)) {
@@ -183,10 +183,10 @@ function findCorrectAnswer() {
 	}
 
 	//Find answer using Levinshtein distance
-	var minDistance = 50;
-	var minDistanceItem = {};
+	let minDistance = 200;
+	let minDistanceItem = {};
 	uiAnswers.forEach(item => {
-		var distance = levenshteinDistance(correctAnswer, item.innerText);
+		let distance = levenshteinDistance(correctAnswer, item.innerText);
 		if (distance < minDistance) {
 			minDistance = distance;
 			minDistanceItem = item;
