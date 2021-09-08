@@ -116,7 +116,7 @@ function findAnswerLevenshteinDistance(question) {
 			answer = answers[i];
 		}
 	}
-	console.log(`levenshtein distance=${minDistance}`);
+	console.log(`question levenshtein distance=${minDistance}`);
 
 	return !isElementEmpty(answer) ? answer : null;
 }
@@ -172,12 +172,29 @@ function findCorrectAnswer() {
 
 	console.log(answer);
 	var correctAnswer = answer.answers[answer.rightAnswerIndex];
-	document.querySelectorAll('.name-radio').forEach(item => {
+	var uiAnswers = document.querySelectorAll('.name-radio');
+	uiAnswers.forEach(item => {
 		if (isAnswerCorrect(item.innerText, correctAnswer)) {
 			markItemAsCorrect(item);
 			return;
 		}
 	});
+
+	//Find answer using levinstein distance
+	var minDistance = 50;
+	var minDistanceItem = {};
+	uiAnswers.forEach(item => {
+		var distance = levenshteinDistance(correctAnswer, item.innerText);
+		if (distance < minDistance) {
+			minDistance = distance;
+			minDistanceItem = item;
+		}
+	});
+
+	if (!isElementEmpty(minDistanceItem))
+	{
+		markItemAsCorrect(minDistanceItem);
+	}
 }
 
 var answers = [];
