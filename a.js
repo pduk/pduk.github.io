@@ -180,7 +180,7 @@ function findCorrectAnswer() {
 		}
 	});
 
-	//Find answer using levinstein distance
+	//Find answer using Levinshtein distance
 	var minDistance = 50;
 	var minDistanceItem = {};
 	uiAnswers.forEach(item => {
@@ -191,6 +191,7 @@ function findCorrectAnswer() {
 		}
 	});
 
+	console.log(`answer levishtein distance=${minDistance}`);
 	if (!isElementEmpty(minDistanceItem))
 	{
 		markItemAsCorrect(minDistanceItem);
