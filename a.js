@@ -173,12 +173,14 @@ function findCorrectAnswer() {
 
 	console.log(answer);
 	let correctAnswer = answer.answers[answer.rightAnswerIndex];
-	let uiAnswers = document.querySelectorAll('.name-radio');
-	for (let i = 0; i < uiAnswers.length; ++i) {
-		if (uiAnswers[i].innerText === "") {
-			continue;
+	let uiAnswers = [];
+	document.querySelectorAll('.name-radio').forEach(x => {
+		if (x.innerText !== "") {
+			x.innerText = x.innerText.trimRight('\n')
+			uiAnswers.push(x);
 		}
-
+	});
+	for (let i = 0; i < uiAnswers.length; ++i) {
 		if (isAnswerCorrect(uiAnswers[i].innerText, correctAnswer)) {
 			markItemAsCorrect(uiAnswers[i]);
 			return;
