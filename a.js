@@ -158,7 +158,7 @@ function findAnswer(question) {
 		}
 	}
 
-	return answer;
+	return null;
 }
 
 function findCorrectAnswer() {
