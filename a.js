@@ -175,9 +175,12 @@ function findCorrectAnswer() {
 	let correctAnswer = answer.answers[answer.rightAnswerIndex];
 	let uiAnswers = document.querySelectorAll('.name-radio');
 	for (let i = 0; i < uiAnswers.length; ++i) {
-		let item = uiAnswers[i];
-		if (isAnswerCorrect(item.innerText, correctAnswer)) {
-			markItemAsCorrect(item);
+		if (uiAnswers[i].innerText === "") {
+			continue;
+		}
+
+		if (isAnswerCorrect(uiAnswers[i].innerText, correctAnswer)) {
+			markItemAsCorrect(uiAnswers[i]);
 			return;
 		}
 	}
