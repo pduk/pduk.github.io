@@ -1,32 +1,32 @@
 function start() {
 	var request = new XMLHttpRequest();
 	request.open("GET", "https://pduk.github.io/tests.json", true);
-	request.onload = event => {
+	request.onload = () => {
 		if (request.readyState === 4) {
 			if (request.status === 200) {
 				answers = JSON.parse(request.responseText);
-				check_if_correct();
-				start_listening();
+				findCorrectAnswer();
+				onQuestionChanged();
 			} else {
 				console.error(request.statusText);
 			}
 		}
 	};
-	request.onerror = event => {
+	request.onerror = () => {
 		console.error(request.statusText);
 	};
 	request.send(null);
 }
 
-function start_listening() {
+function onQuestionChanged() {
 	var questionText = document.getElementById("question-text");
 	observer = new MutationObserver(function (mutationsList, observer) {
-		check_if_correct();
+		findCorrectAnswer();
 	});
 	observer.observe(questionText, { characterData: false, childList: true, attributes: false });
 }
 
-function compare_array(firstArr, secondArr) {
+function compareArray(firstArr, secondArr) {
 	if (!Array.isArray(firstArr) || !Array.isArray(secondArr)
 		|| firstArr.length !== secondArr.length) {
 		return false;
@@ -44,7 +44,7 @@ function compare_array(firstArr, secondArr) {
 	return true;
 }
 
-function is_any_compare_array(firstArr, secondArr) {
+function compareAnyArrayElement(firstArr, secondArr) {
 	if (!Array.isArray(firstArr) || !Array.isArray(secondArr)) {
 		return false;
 	}
@@ -52,13 +52,13 @@ function is_any_compare_array(firstArr, secondArr) {
 	return firstArr.some(x => secondArr.indexOf(x) !== -1);
 }
 
-function is_answer_correct(answer, correctAnswer) {
+function isAnswerCorrect(answer, correctAnswer) {
 	if (answer.includes(correctAnswer) || correctAnswer.includes(answer)) {
 		return true;
 	}
 
 	if (answer.includes("`")) {
-		return is_answer_correct(answer.replace("`","'"), correctAnswer);
+		return isAnswerCorrect(answer.replace("`", "'"), correctAnswer);
 	}
 
 	let answer1 = answer.trimRight('.');
@@ -70,28 +70,71 @@ function is_answer_correct(answer, correctAnswer) {
 	return false;
 }
 
-function element_is_empty(element) {
+function isElementEmpty(element) {
 	return Object.keys(element).length === 0 && element.constructor === Object;
 }
 
-function check_if_correct() {
-	console.log("checking");
-	var question = document.getElementById("question-text").innerText;
-	question = question.trimRight('\n');
+function markItemAsCorrect(item) {
+	var questionNum = document.getElementById("question-number");
+	item.addEventListener('mouseover', () => {
+		questionNum.style.backgroundColor = "#A7B9C3";
+	});
+	item.addEventListener('mouseout', () => {
+		questionNum.removeAttribute('style');
+	});
+}
+
+function levenshteinDistance(first, second) {
+	const track = Array(second.length + 1).fill(null).map(() =>
+		Array(first.length + 1).fill(null));
+	for (let i = 0; i <= first.length; i += 1) {
+		track[0][i] = i;
+	}
+	for (let j = 0; j <= second.length; j += 1) {
+		track[j][0] = j;
+	}
+	for (let j = 1; j <= second.length; j += 1) {
+		for (let i = 1; i <= first.length; i += 1) {
+			const indicator = first[i - 1] === second[j - 1] ? 0 : 1;
+			track[j][i] = Math.min(
+				track[j][i - 1] + 1,
+				track[j - 1][i] + 1,
+				track[j - 1][i - 1] + indicator,
+			);
+		}
+	}
+	return track[second.length][first.length];
+};
+
+function findAnswerLevenshteinDistance(question) {
+	var minDistance = 100;
+	var answer = {};
+	for (let i = 0; i < answers.length; ++i) {
+		var distance = levenshteinDistance(question, answers[i].question);
+		if (distance < minDistance) {
+			minDistance = distance;
+			answer = answers[i];
+		}
+	}
+	console.log(`levenshtein distance=${minDistance}`);
+
+	return !isElementEmpty(answer) ? answer : null;
+}
+
+function findAnswer(question) {
 	var filteredAnswers = answers.filter(x => x.question === question);
 
 	if (filteredAnswers.length === 0 && question.includes("`")) {
 		question = question.replace("`", "'");
 		filteredAnswers = answers.filter(x => x.question === question);
 	}
+
 	if (filteredAnswers.length === 0) {
-		console.error(`cannot find answer for question: ${question}`);
-		return;
+		return findAnswerLevenshteinDistance(question);
 	}
 
-	var answer = {};
 	if (filteredAnswers.length === 1) {
-		answer = filteredAnswers[0];
+		return filteredAnswers[0];
 	}
 	else {
 		var uiAnswers = [];
@@ -99,38 +142,41 @@ function check_if_correct() {
 			uiAnswers.push(x.innerText.trimRight('\n'));
 		});
 		uiAnswers = uiAnswers.filter(x => x);
+		//Check if all answers coresponds
 		for (let i = 0; i < filteredAnswers.length; i++) {
-			if (compare_array(uiAnswers, filteredAnswers[i].answers)) {
-				answer = filteredAnswers[i];
-				break;
+			if (compareArray(uiAnswers, filteredAnswers[i].answers)) {
+				return filteredAnswers[i];
 			}
 		}
 
-		if (element_is_empty(answer)) {
-			for (let i = 0; i < filteredAnswers.length; i++) {
-				if (is_any_compare_array(uiAnswers, filteredAnswers[i].answers)) {
-					answer = filteredAnswers[i];
-					break;
-				}
+		//Otherwise check if any answer present
+		for (let i = 0; i < filteredAnswers.length; i++) {
+			if (compareAnyArrayElement(uiAnswers, filteredAnswers[i].answers)) {
+				return filteredAnswers[i];
 			}
 		}
 	}
 
-	console.log(answer);
+	return answer;
+}
 
-	var questionNum = document.getElementById("question-number");
+function findCorrectAnswer() {
+	console.log("checking...");
+	var question = document.getElementById("question-text").innerText;
+	var answer = findAnswer(question.trimRight('\n'));
+
+	if (answer === null || isElementEmpty(answer)) {
+		console.log(`cannot find answer for question: ${question}`);
+		return;
+	}
+
+	console.log(answer);
 	var correctAnswer = answer.answers[answer.rightAnswerIndex];
 	document.querySelectorAll('.name-radio').forEach(item => {
-		item.addEventListener('mouseover', event => {
-			if (is_answer_correct(event.target.innerText, correctAnswer)) {
-				questionNum.style.backgroundColor = "#a7c3b7";
-			}
-		});
-		item.addEventListener('mouseout', event => {
-			if (is_answer_correct(event.target.innerText, correctAnswer)) {
-				questionNum.removeAttribute('style');
-			}
-		});
+		if (isAnswerCorrect(item.innerText, correctAnswer)) {
+			markItemAsCorrect(item);
+			return;
+		}
 	});
 }
 
