@@ -74,10 +74,10 @@ function isElementEmpty(element) {
 	return Object.keys(element).length === 0 && element.constructor === Object;
 }
 
-function markItemAsCorrect(item) {
+function markItemAsCorrect(item, isLevinshtein = false) {
 	var questionNum = document.getElementById("question-number");
 	item.addEventListener('mouseover', () => {
-		questionNum.style.backgroundColor = "#A7B9C3";
+		questionNum.style.backgroundColor = isLevinshtein ? "#A7AAC3" : "#A7B9C3";
 	});
 	item.addEventListener('mouseout', () => {
 		questionNum.removeAttribute('style');
@@ -123,12 +123,10 @@ function findAnswerLevenshteinDistance(question) {
 }
 
 function findAnswer(question) {
-	let filteredAnswers = answers.filter(x => x.question === question);
-
-	if (filteredAnswers.length === 0 && question.includes("`")) {
+	if (question.includes("`")) {
 		question = question.replace("`", "'");
-		filteredAnswers = answers.filter(x => x.question === question);
 	}
+	let filteredAnswers = answers.filter(x => x.question === question);
 
 	if (filteredAnswers.length === 0) {
 		return findAnswerLevenshteinDistance(question);
@@ -140,7 +138,11 @@ function findAnswer(question) {
 	else {
 		let uiAnswers = [];
 		document.querySelectorAll('.name-radio').forEach(x => {
-			uiAnswers.push(x.innerText.trimRight('\n'));
+			let text = x.innerText.trimRight('\n');
+			if (text.includes("`")) {
+				text = text.replace("`", "'");
+			}
+			uiAnswers.push(text);
 		});
 		uiAnswers = uiAnswers.filter(x => x);
 		//Check if all answers coresponds
@@ -200,7 +202,7 @@ function findCorrectAnswer() {
 
 	console.log(`answer levishtein distance=${minDistance}`);
 	if (!isElementEmpty(minDistanceItem)) {
-		markItemAsCorrect(minDistanceItem);
+		markItemAsCorrect(minDistanceItem, true);
 	}
 }
 
